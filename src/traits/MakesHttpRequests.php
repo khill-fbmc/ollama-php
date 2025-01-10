@@ -22,12 +22,16 @@ trait MakesHttpRequests
     {
         $this->client = $client;
     }
-
+    
     protected function request(string $method, string $endpoint, array $data = []): OllamaResponseInterface
     {
         try {
             $data['stream'] = false;
-            $response = $this->client->request($method, $endpoint, [
+    
+            // Prepend '/api/' to the endpoint
+            $apiEndpoint = '/api/' . ltrim($endpoint, '/');
+    
+            $response = $this->client->request($method, $apiEndpoint, [
                 'json' => $data,
             ]);
         } catch (ClientException $e) {
@@ -37,7 +41,7 @@ trait MakesHttpRequests
         } catch (\Exception $e) {
             throw new OllamaException($e->getMessage(), $e->getCode(), $e);
         }
-
+    
         switch ($endpoint) {
             case 'generate':
                 return new CompletionResponse($response);
